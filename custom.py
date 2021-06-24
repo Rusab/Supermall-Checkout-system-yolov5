@@ -35,6 +35,11 @@ from utils.plots import colors, plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
+
+
+
+
+
 @torch.no_grad()
 def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt path(s)
         source='0',  # file/dir/URL/glob, 0 for webcam
@@ -132,15 +137,26 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
             listed = ""
+            price_listed = []
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
                 
                 # Print results
+                total_price = 0
                 for c in det[:, -1].unique():
                     n = (det[:, -1] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-                    listed += f"{n} x {names[int(c)]}               Tk.{price_list[int(c)]}\n"
+                    ls_item = f"{n} x {names[int(c)]}"
+                    ls_price = f"Tk.{price_list[int(c)]}"
+                    total_price += int(price_list[int(c)])
+                    tot_len = len(ls_item) + len(ls_price)
+                    
+                    listed += ls_item + "\n"
+                    price_listed.append(str(price_list[int(c)]))
+                    
+                if ui.button_flag:
+                    ui.update_total(total_price)
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -158,8 +174,13 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
             if len(listed):
-                ui.clear_list()
-                ui.update_item(listed)
+               
+                listed = listed.split("\n")
+                if ui.button_flag:
+                    ui.clear_list()
+                    for item, item_price in zip(listed, price_listed):
+                        ui.update_item(item)   
+                        ui.update_price(item_price)
 
             # Stream results
             if view_img:
@@ -184,29 +205,47 @@ class Ui_Dialog(object):
         
         myFont=QtGui.QFont()
         myFont.setBold(True)
+        myFont.setPointSize(15)
         
         self.labelCam = QtWidgets.QLabel(Dialog)
         self.labelCam.setText("Camera Feed")
         self.labelCam.setFont(myFont)
-        self.labelCam.setGeometry(70, 20, 120, 10)
+        self.labelCam.setGeometry(70, 20, 125, 20)
+        self.labelCam.adjustSize()
+        
         #self.labelCam.setAlignment(Qt.AlignCenter)
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(70, 50, 640, 480))
         self.label.setLineWidth(3)
         self.label.setText("")
-        self.label.setPixmap(QPixmap("../Resized_Dataset/416x416/Coca cola 250ml  bottle/190319142_234344561785826_1743671954388868301_n.jpg"))
+        self.label.setPixmap(QPixmap("ui_elements/connectingcam.jpg"))
         self.label.setScaledContents(True)
         self.label.setObjectName("label")
+        
         self.listWidget = QtWidgets.QListWidget(Dialog)
-        self.listWidget.setGeometry(QtCore.QRect(720, 50, 600, 480))
+        self.listWidget.setGeometry(QtCore.QRect(720, 50, 300, 480))
+        
+        self.listPrice = QtWidgets.QListWidget(Dialog)
+        self.listPrice.setGeometry(QtCore.QRect(1010, 50, 300, 480))
+        
+        self.button_flag = False
+        
         self.labelList = QtWidgets.QLabel(Dialog)
         self.labelList.setText("Product List")
         self.labelList.setFont(myFont)
-        self.labelList.setGeometry(720, 20, 120, 10)
+        self.labelList.setGeometry(720, 20, 120, 20)
         self.listWidget.setObjectName("listWidget")
+        
         self.pushButton = QtWidgets.QPushButton(Dialog)
         self.pushButton.setGeometry(QtCore.QRect(230, 540, 320, 80))
+        
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.button_clicked)
+        
+        self.labelTotal = QtWidgets.QLabel(Dialog)
+        self.labelTotal.setText("Total: Tk.00")
+        self.labelTotal.setFont(myFont)
+        self.labelTotal.setGeometry(720, 550, 130, 20)
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -233,8 +272,24 @@ class Ui_Dialog(object):
     def update_item(self, item):
         self.listWidget.addItem(item)
     
+    def update_price(self, price):
+        self.listPrice.addItem(price)
+    
     def clear_list(self):
         self.listWidget.clear()
+        self.listPrice.clear()
+    
+    def update_total(self, price):
+        self.labelTotal.setText("Total: Tk." + str(price))
+        self.labelTotal.adjustSize()
+        
+    def button_clicked(self):
+        self.button_flag = not self.button_flag
+        if self.button_flag:
+            self.pushButton.setText("Stop Billing")
+        else:
+            self.pushButton.setText("Start Billing")
+            
 
 
 if __name__ == "__main__":
