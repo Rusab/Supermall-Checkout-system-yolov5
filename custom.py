@@ -183,10 +183,12 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             if len(listed):
                
                 listed = listed.split("\n")
-                if ui.button_flag:                   
+                if ui.button_flag:
+                    ui.clear_list()
                     for item, item_price in zip(listed, price_listed):
                         ui.update_item(item)   
                         ui.update_price("\u09F3" + str(item_price))
+                    ui.update_total()
 
             # Stream results
             if view_img:
