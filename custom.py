@@ -6,7 +6,7 @@ Usage:
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor
 import cv2
 import sys
 
@@ -149,14 +149,14 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                     ls_item = f"{n} x {names[int(c)]}"
                     ls_price = f"Tk.{price_list[int(c)]}"
-                    total_price += int(price_list[int(c)])
+                   
                     tot_len = len(ls_item) + len(ls_price)
                     
                     listed += ls_item + "\n"
-                    price_listed.append(str(price_list[int(c)]))
+                    item_price = int(n) * int(price_list[int(c)])
+                    price_listed.append(item_price)
                     
-                if ui.button_flag:
-                    ui.update_total(total_price)
+                
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -173,14 +173,20 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                             
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
+            
+
+            
+            if ui.button_flag:  
+                ui.clear_list()
+                ui.update_total()
+            
             if len(listed):
                
                 listed = listed.split("\n")
-                if ui.button_flag:
-                    ui.clear_list()
+                if ui.button_flag:                   
                     for item, item_price in zip(listed, price_listed):
                         ui.update_item(item)   
-                        ui.update_price(item_price)
+                        ui.update_price("\u09F3" + str(item_price))
 
             # Stream results
             if view_img:
@@ -189,7 +195,7 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                 ui.update_image(im0)
                 cv2.waitKey(1)  # 1 millisecond
                 
-               # return im0
+              
 
          
 
@@ -201,7 +207,8 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Automated Checkout System")
-        Dialog.resize(1280, 720)
+        Dialog.resize(1480, 720)
+        
         
         myFont=QtGui.QFont()
         myFont.setBold(True)
@@ -229,6 +236,7 @@ class Ui_Dialog(object):
         self.listPrice.setGeometry(QtCore.QRect(1010, 50, 300, 480))
         
         self.button_flag = False
+        self.lock_pointer = 1
         
         self.labelList = QtWidgets.QLabel(Dialog)
         self.labelList.setText("Product List")
@@ -237,10 +245,19 @@ class Ui_Dialog(object):
         self.listWidget.setObjectName("listWidget")
         
         self.pushButton = QtWidgets.QPushButton(Dialog)
-        self.pushButton.setGeometry(QtCore.QRect(230, 540, 320, 80))
-        
+        self.pushButton.setGeometry(QtCore.QRect(110, 540, 240, 80))       
         self.pushButton.setObjectName("pushButton")
         self.pushButton.clicked.connect(self.button_clicked)
+        
+        self.resetButton = QtWidgets.QPushButton(Dialog)
+        self.resetButton.setGeometry(QtCore.QRect(270, 640, 240, 80))       
+        self.resetButton.setObjectName("resetButton")
+        self.resetButton.clicked.connect(self.reset_list)
+        
+        self.lockButton = QtWidgets.QPushButton(Dialog)
+        self.lockButton.setGeometry(QtCore.QRect(430, 540, 240, 80))  
+        self.lockButton.setObjectName("lockButton")
+        self.lockButton.clicked.connect(self.lock_clicked)
         
         self.labelTotal = QtWidgets.QLabel(Dialog)
         self.labelTotal.setText("Total: Tk.00")
@@ -254,6 +271,8 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Automated Checkout System", "Automated Checkout System"))
         self.pushButton.setText(_translate("Automated Checkout System", "Start Billing"))
+        self.lockButton.setText(_translate("Automated Checkout System", "Lock Current Items"))
+        self.resetButton.setText(_translate("Automated Checkout System", "Clear List"))
         
     def update_image(self, cv_img):
         qtimg = self.convert_cv_qt(cv_img)
@@ -276,11 +295,26 @@ class Ui_Dialog(object):
         self.listPrice.addItem(price)
     
     def clear_list(self):
-        self.listWidget.clear()
+        current = self.listWidget.count()
+        print(f"current:{current}")
+        print(f"pointer:{self.lock_pointer}")
+        for row in range(self.lock_pointer-1, current):    
+            self.listWidget.takeItem(row)
+            self.listPrice.takeItem(row)
+            
+    def reset_list(self):
         self.listPrice.clear()
+        self.listWidget.clear()
+        self.lock_pointer = 1
     
-    def update_total(self, price):
-        self.labelTotal.setText("Total: Tk." + str(price))
+    def update_total(self):
+        total = 0
+        for i in range(self.listPrice.count()):
+           x = self.listPrice.item(i).text()
+           x = x[1:]
+           total += int(x)
+        
+        self.labelTotal.setText("Total: \u09F3" + str(total))
         self.labelTotal.adjustSize()
         
     def button_clicked(self):
@@ -289,6 +323,16 @@ class Ui_Dialog(object):
             self.pushButton.setText("Stop Billing")
         else:
             self.pushButton.setText("Start Billing")
+            self.clear_list()
+            self.update_total()
+            
+    def lock_clicked(self):
+        self.lock_pointer = self.listWidget.count() + 1
+        for i in range(self.lock_pointer - 1):
+           x = self.listWidget.item(i)
+           x.setBackground(QColor("#7fc97f"))
+            
+        
             
 
 
