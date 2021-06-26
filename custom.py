@@ -6,6 +6,7 @@ Usage:
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QGraphicsColorizeEffect
 from PyQt5.QtGui import QPixmap, QColor
 import cv2
 import sys
@@ -83,6 +84,9 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
     stride = int(model.stride.max())  # model stride
     imgsz = check_img_size(imgsz, s=stride)  # check image size
     names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+    
+    net_det_count = [0]*len(names)
+    
     if half:
         model.half()  # to FP16
 
@@ -132,7 +136,15 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                 p, s, im0, frame = path, '', im0s.copy(), getattr(dataset, 'frame', 0)
 
             p = Path(p)  # to Path
-         
+                        
+            curr_det_count = [0]*len(names)
+            
+            #reset net det counter
+            if ui.reset_flag > 0:
+                ui.reset_flag = 0
+                net_det_count = [0]*len(names)
+                
+            
             s += '%gx%g ' % img.shape[2:]  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
@@ -153,6 +165,8 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                     tot_len = len(ls_item) + len(ls_price)
                     
                     listed += ls_item + "\n"
+                    
+                    curr_det_count[int(c)] += int(n)
                     item_price = int(n) * int(price_list[int(c)])
                     price_listed.append(item_price)
                     
@@ -174,11 +188,24 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
             
-
-            
-            if ui.button_flag:  
+            if ui.button_flag: 
+                if ui.lock_flag > 0:
+                                     
+                    ui.lock_flag = 0
+                    ui.listPrice.clear()
+                    ui.listWidget.clear()
+                    
+                    for i in range(len(names)):
+                        net_det_count[i] += curr_det_count[i]
+                        if net_det_count[i] > 0:
+                            ui.update_item(f"{net_det_count[i]} x {names[i]}")   
+                            ui.update_price("\u09F3" + str(net_det_count[i]*item_price))
+                    print(f"net_count = {net_det_count}")
+                    ui.color_locked()             
                 ui.clear_list()
                 ui.update_total()
+            else:
+                ui.lock_flag = 0 #reset lock flag if not billing
             
             if len(listed):
                
@@ -206,6 +233,8 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
 
 
 
+
+
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Automated Checkout System")
@@ -215,6 +244,7 @@ class Ui_Dialog(object):
         myFont=QtGui.QFont()
         myFont.setBold(True)
         myFont.setPointSize(15)
+        
         
         self.labelCam = QtWidgets.QLabel(Dialog)
         self.labelCam.setText("Camera Feed")
@@ -239,6 +269,8 @@ class Ui_Dialog(object):
         
         self.button_flag = False
         self.lock_pointer = 1
+        self.lock_flag = 0
+        self.reset_flag = 0
         
         self.labelList = QtWidgets.QLabel(Dialog)
         self.labelList.setText("Product List")
@@ -274,7 +306,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(_translate("Automated Checkout System", "Automated Checkout System"))
         self.pushButton.setText(_translate("Automated Checkout System", "Start Billing"))
         self.lockButton.setText(_translate("Automated Checkout System", "Lock Current Items"))
-        self.resetButton.setText(_translate("Automated Checkout System", "Clear List"))
+        self.resetButton.setText(_translate("Automated Checkout System", "Clear Bill"))
         
     def update_image(self, cv_img):
         qtimg = self.convert_cv_qt(cv_img)
@@ -295,7 +327,7 @@ class Ui_Dialog(object):
     
     def update_price(self, price):
         self.listPrice.addItem(price)
-    
+        
     def clear_list(self):
         current = self.listWidget.count()
         print(f"current:{current}")
@@ -303,11 +335,17 @@ class Ui_Dialog(object):
         for row in range(self.lock_pointer-1, current):    
             self.listWidget.takeItem(row)
             self.listPrice.takeItem(row)
+        
             
     def reset_list(self):
         self.listPrice.clear()
         self.listWidget.clear()
+        self.reset_flag = 1
         self.lock_pointer = 1
+        self.lock_flag = 0
+        self.labelTotal.setText("Total: \u09F3" + "0")
+        self.labelTotal.adjustSize()
+        self.colorize(Qt.black)
     
     def update_total(self):
         total = 0
@@ -323,16 +361,31 @@ class Ui_Dialog(object):
         self.button_flag = not self.button_flag
         if self.button_flag:
             self.pushButton.setText("Stop Billing")
+            self.colorize(Qt.black)
+            
         else:
             self.pushButton.setText("Start Billing")
             self.clear_list()
             self.update_total()
+            self.colorize(Qt.darkGreen)
+            
             
     def lock_clicked(self):
+        self.lock_flag = 1
+           
+    def color_locked(self):
+        
         self.lock_pointer = self.listWidget.count() + 1
+        print(self.lock_pointer)
         for i in range(self.lock_pointer - 1):
            x = self.listWidget.item(i)
-           x.setBackground(QColor("#7fc97f"))
+           x.setBackground(QColor("#7fc97f"))   
+           
+    def colorize(self, color):
+        color_effect = QGraphicsColorizeEffect()
+        color_effect.setColor(color)
+        self.labelTotal.setGraphicsEffect(color_effect)
+        
             
         
             
