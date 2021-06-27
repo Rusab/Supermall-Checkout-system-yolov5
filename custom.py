@@ -249,6 +249,10 @@ class Ui_MainWindow(object):
         myFont.setBold(True)
         myFont.setPointSize(16)
         
+        listfont=QtGui.QFont('Poppins')
+        listfont.setBold(True)
+        listfont.setPointSize(10)
+        
         titleFont=QtGui.QFont('Poppins')
         titleFont.setBold(True)
         titleFont.setPointSize(30)
@@ -278,6 +282,10 @@ class Ui_MainWindow(object):
         QMenu::item::selected {
             background-color: #000000;
         }
+        
+        QMenu::item::disabled {
+            color: #888888;
+        }
                                  
                                  """)
                                  
@@ -303,11 +311,13 @@ class Ui_MainWindow(object):
         self.listWidget.setGeometry(QtCore.QRect(720, 170, 241, 481))
         self.listWidget.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
         self.listWidget.setObjectName("listWidget")
+        self.listWidget.setFont(listfont)
         
         self.listPrice = QtWidgets.QListWidget(self.centralwidget)
         self.listPrice.setGeometry(QtCore.QRect(970, 170, 121, 481))
-        self.listPrice.setStyleSheet("background-color: rgb(59, 62, 63);")
+        self.listPrice.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
         self.listPrice.setObjectName("listPrice")
+        self.listPrice.setFont(listfont)
         
         self.listLabel = QtWidgets.QLabel(self.centralwidget)
         self.listLabel.setGeometry(QtCore.QRect(720, 125, 151, 41))
@@ -427,12 +437,15 @@ class Ui_MainWindow(object):
         
         self.actionExit = QtWidgets.QAction(MainWindow)
         self.actionExit.setObjectName("actionExit")
+        self.actionExit.triggered.connect(MainWindow.close)
         
         self.actionStart_Billing = QtWidgets.QAction(MainWindow)
         self.actionStart_Billing.setObjectName("actionStart_Billing")
         
+        
         self.actionStop_Billing = QtWidgets.QAction(MainWindow)
         self.actionStop_Billing.setObjectName("actionStop_Billing")
+        
         
         self.actionLock_Items = QtWidgets.QAction(MainWindow)
         self.actionLock_Items.setObjectName("actionLock_Items")
@@ -448,6 +461,11 @@ class Ui_MainWindow(object):
         
         self.menuFIle.addAction(self.actionOpen_Price_File)
         self.menuFIle.addAction(self.actionExit)
+        
+        self.actionStart_Billing.triggered.connect(self.button_clicked)
+        self.actionLock_Items.triggered.connect(self.lock_clicked)
+        self.actionClear_List.triggered.connect(self.reset_list)
+        self.actionStop_Billing.setDisabled(True)
         
         self.menuAction.addAction(self.actionStart_Billing)
         self.menuAction.addAction(self.actionStop_Billing)
@@ -482,6 +500,7 @@ class Ui_MainWindow(object):
         self.actionStart_Billing.setText(_translate("MainWindow", "Start Billing"))
         self.actionStart_Billing.setShortcut(_translate("MainWindow", "S"))
         self.actionStop_Billing.setText(_translate("MainWindow", "Stop Billing"))
+        self.actionStop_Billing.setShortcut(_translate("MainWindow", "S"))
         self.actionLock_Items.setText(_translate("MainWindow", "Lock Items"))
         self.actionLock_Items.setShortcut(_translate("MainWindow", "Space"))
         self.actionClear_List.setText(_translate("MainWindow", "Clear List"))
@@ -489,6 +508,8 @@ class Ui_MainWindow(object):
         self.actionHow_to_use.setText(_translate("MainWindow", "How to use"))
         self.actionAbout.setText(_translate("MainWindow", "About"))
 
+    def close_window(self):
+        self.exit_app()
         
     def update_image(self, cv_img):
         qtimg = self.convert_cv_qt(cv_img)
@@ -497,7 +518,6 @@ class Ui_MainWindow(object):
     def convert_cv_qt(self, cv_img):
         """Convert from an opencv image to QPixmap"""
         rgb_image = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
-        #rgb_image = cv_img
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
         convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
@@ -508,7 +528,9 @@ class Ui_MainWindow(object):
         self.listWidget.addItem(item)
     
     def update_price(self, price):
-        self.listPrice.addItem(price)
+        item = QtWidgets.QListWidgetItem(price)
+        item.setTextAlignment(Qt.AlignHCenter)
+        self.listPrice.addItem(item)
         
     def clear_list(self):
         current = self.listWidget.count()
@@ -537,7 +559,7 @@ class Ui_MainWindow(object):
            total += int(x)
         
         self.labelTotal.setText("Total: \u09F3" + str(total))
-        self.labelTotal.adjustSize()
+        #self.labelTotal.adjustSize()
         self.colorize(Qt.black)
        
         
@@ -551,6 +573,9 @@ class Ui_MainWindow(object):
             self.colorize(Qt.black)
             self.billingButton.setStyleSheet("background-color: rgb(255, 92, 92);\n"
 "font: 500 12pt \"Poppins\";")
+            self.actionStart_Billing.setDisabled(True)
+            self.actionStop_Billing.setDisabled(False)
+           
             
         else:
             self.billingButton.setIcon(self.icon)
@@ -560,6 +585,10 @@ class Ui_MainWindow(object):
             self.colorize(Qt.darkGreen)
             self.billingButton.setStyleSheet("background-color: rgb(90, 255, 109);\n"
 "font: 500 12pt \"Poppins\";")
+            self.actionStop_Billing.setDisabled(True)
+            self.actionStart_Billing.setDisabled(False)
+           
+       
             
             
     def lock_clicked(self):
