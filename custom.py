@@ -233,6 +233,53 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
 
 
 
+class helpPopup(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.resize(658, 439)
+        Dialog.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setContentsMargins(10, -1, 10, -1)
+        self.verticalLayout.setSpacing(22)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.Title = QtWidgets.QLabel(Dialog)
+        self.Title.setAlignment(QtCore.Qt.AlignCenter)
+        self.Title.setObjectName("Title")
+        self.verticalLayout.addWidget(self.Title)
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label.setWordWrap(True)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        self.horizontalLayout.setContentsMargins(250, 0, 250, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.OkButton = QtWidgets.QPushButton(Dialog)
+        self.OkButton.setStyleSheet("color: rgb(0, 0, 0);\n"
+"background-color: rgb(90, 255, 109);\n"
+"font: 500 12pt \"Poppins\";")
+        self.OkButton.clicked.connect(Dialog.close)        
+        
+        self.OkButton.setObjectName("OkButton")
+        self.horizontalLayout.addWidget(self.OkButton)
+        self.horizontalLayout.setStretch(0, 1)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.Title.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-family:\'poppins\'; font-size:16pt; font-weight:600; color:#ffffff;\">How to Use</span></p></body></html>"))
+        self.label.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-family:\'poppins\'; font-size:12pt;\">To start billing, press the</span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\"> &quot;START BILLING&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or the</span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\"> (S) Key</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> on your keyboard. While in billing mode, place items infront of the camera to add them to the list. </span></p><p><span style=\" font-family:\'poppins\'; font-size:12pt;\">To lock the current batch of items in the list press </span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\">&quot;LOCK ITEMS&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or the </span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\">(Space) Key</span><span style=\" font-size:12pt;\"> on your keyboard to lock them in place. After that you can remove the current batch of products and bring in a new batch. </span></p><p><span style=\" font-size:12pt;\"><br/>Use the</span><span style=\" font-size:12pt; font-weight:600;\"> &quot;CLEAR LIST&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or</span><span style=\" font-size:12pt; font-weight:600;\"> (X) Key</span><span style=\" font-size:12pt;\"> on your keyboard to clear the items on the list.</span></p><p><span style=\" font-size:12pt;\"><br/>After you are done billing your products, press the </span><span style=\" font-size:12pt; font-weight:600;\">&quot;STOP BILLING&quot;</span><span style=\" font-size:12pt;\"> Button or the</span><span style=\" font-size:12pt; font-weight:600;\"> (S) Key </span><span style=\" font-size:12pt;\">on your keyboard. You will be prompted if you want to generate a memo. Press yes to generate the memo.</span></p><p><span style=\" font-family:\'poppins\'; font-size:12pt;\"><br/></span></p></body></html>"))
+        self.OkButton.setText(_translate("Dialog", "OK"))
+        
+
 
 
 
@@ -455,6 +502,7 @@ class Ui_MainWindow(object):
         
         self.actionHow_to_use = QtWidgets.QAction(MainWindow)
         self.actionHow_to_use.setObjectName("actionHow_to_use")
+        self.actionHow_to_use.triggered.connect(self.open_help)
         
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
@@ -611,6 +659,14 @@ class Ui_MainWindow(object):
         color_effect.setColor(color)
         self.labelTotal.setGraphicsEffect(color_effect)
         
+    def open_help(self):
+        helpWindow = QtWidgets.QDialog()
+        helpui = helpPopup()
+        helpui.setupUi(helpWindow)
+        rw = helpWindow.exec()
+        
+        
+        
             
         
             
@@ -622,7 +678,12 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    
+   
+    
     MainWindow.show()
+    
+    
     
     run()
     
