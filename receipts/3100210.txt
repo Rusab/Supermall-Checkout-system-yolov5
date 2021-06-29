@@ -1,0 +1,16 @@
+Order
+Receipt #3100210
+
+Shop Name: Sigma Supershop
+Date Time: 2021-06-29 20:42:06
+--------------------------------------------------
+QTY   Description                       Price
+--------------------------------------------------
+1     Parachute Coconut Oil 50ml        Tk.80
+1     Frutika Grape 250ml               Tk.80
+2     Sepnil HandSanitizer 40ml         Tk.160
+2     Vasline Original                  Tk.160
+--------------------------------------------------
+Total:                                  Tk.480
+--------------------------------------------------
+Thank You For Shopping

@@ -8,15 +8,20 @@ Usage:
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QGraphicsColorizeEffect
 from PyQt5.QtGui import QPixmap, QColor, QPalette
-import cv2
-import sys
+
+
+
+from os import startfile
+from random import randint
+
 
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
 import numpy as np
 
-import argparse
+
 import sys
 import time
+import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -279,8 +284,50 @@ class helpPopup(object):
         self.label.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-family:\'poppins\'; font-size:12pt;\">To start billing, press the</span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\"> &quot;START BILLING&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or the</span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\"> (S) Key</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> on your keyboard. While in billing mode, place items infront of the camera to add them to the list. </span></p><p><span style=\" font-family:\'poppins\'; font-size:12pt;\">To lock the current batch of items in the list press </span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\">&quot;LOCK ITEMS&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or the </span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600;\">(Space) Key</span><span style=\" font-size:12pt;\"> on your keyboard to lock them in place. After that you can remove the current batch of products and bring in a new batch. </span></p><p><span style=\" font-size:12pt;\"><br/>Use the</span><span style=\" font-size:12pt; font-weight:600;\"> &quot;CLEAR LIST&quot;</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"> Button or</span><span style=\" font-size:12pt; font-weight:600;\"> (X) Key</span><span style=\" font-size:12pt;\"> on your keyboard to clear the items on the list.</span></p><p><span style=\" font-size:12pt;\"><br/>After you are done billing your products, press the </span><span style=\" font-size:12pt; font-weight:600;\">&quot;STOP BILLING&quot;</span><span style=\" font-size:12pt;\"> Button or the</span><span style=\" font-size:12pt; font-weight:600;\"> (S) Key </span><span style=\" font-size:12pt;\">on your keyboard. You will be prompted if you want to generate a memo. Press yes to generate the memo.</span></p><p><span style=\" font-family:\'poppins\'; font-size:12pt;\"><br/></span></p></body></html>"))
         self.OkButton.setText(_translate("Dialog", "OK"))
         
+class receipt_prompt(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Prompt")
+        Dialog.resize(325, 138)
+        Dialog.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
+        self.gridLayout = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout.setObjectName("gridLayout")
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setWordWrap(True)
+        self.label.setObjectName("label")
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 2)
+        self.yesButton = QtWidgets.QPushButton(Dialog)
+        self.yesButton.setStyleSheet("color: rgb(0, 0, 0);\n"
+"background-color: rgb(90, 255, 109);\n"
+"font: 500 12pt \"Poppins\";")
+       
+        self.yesButton.setObjectName("yesButton")
+        self.yesButton.clicked.connect(lambda: self.prompt_reply(Dialog))
+                
+        self.gridLayout.addWidget(self.yesButton, 1, 0, 1, 1)
+        self.noButton = QtWidgets.QPushButton(Dialog)
+        self.noButton.setStyleSheet("color: rgb(0, 0, 0);\n"
+"background-color: rgb(90, 255, 109);\n"
+"font: 500 12pt \"Poppins\";")
+        
+        self.noButton.setObjectName("noButton")
+        self.noButton.clicked.connect(Dialog.close)
+        self.gridLayout.addWidget(self.noButton, 1, 1, 1, 1)
+        
+        self.reply = 0
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
 
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Prompt"))
+        self.label.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-family:\'poppins\'; font-size:12pt;\">Do you want to generate a receipt ?</span></p></body></html>"))
+        self.yesButton.setText(_translate("Dialog", "Yes"))
+        self.noButton.setText(_translate("Dialog", "No"))
 
+    def prompt_reply(self, Dialog):
+        self.reply = 1
+        Dialog.close()
 
 
 class Ui_MainWindow(object):
@@ -635,6 +682,7 @@ class Ui_MainWindow(object):
 "font: 500 12pt \"Poppins\";")
             self.actionStop_Billing.setDisabled(True)
             self.actionStart_Billing.setDisabled(False)
+            self.open_receipt_prompt()
            
        
             
@@ -664,6 +712,53 @@ class Ui_MainWindow(object):
         helpui = helpPopup()
         helpui.setupUi(helpWindow)
         rw = helpWindow.exec()
+        
+    def open_receipt_prompt(self):
+        promptWindow = QtWidgets.QDialog()
+        helpui = receipt_prompt()
+        helpui.setupUi(promptWindow)
+        rw = promptWindow.exec()
+        if helpui.reply > 0:
+            self.generate_reciept()
+    
+    def generate_reciept(self):
+        receipt_no = str(randint(0000000, 9999999))
+        file1 = open("receipts/" + receipt_no  + ".txt","w+")
+        file1.write("Order\n")
+        file1.write("Receipt #" + receipt_no  + "\n\n")
+        file1.write("Shop Name: Sigma Supershop\n")
+        date = str(datetime.datetime.now())
+        file1.write("Date Time: "+ date[:-7] + "\n")
+        file1.write("--------------------------------------------------\n")
+        qtDes = "QTY   Description"
+        spaces = " " * (40-len(qtDes))
+        file1.write(qtDes + spaces + "Price\n")
+        file1.write("--------------------------------------------------\n")
+        price = []
+        for i in range(self.lock_pointer - 1):
+           x = self.listWidget.item(i).text()
+           y = self.listPrice.item(i).text()
+           qty = x[0]
+           desc = x[4:]
+           price.append(int(y[1:]))
+           qtDes = qty + "     " + desc
+           spaces = " " * (40-len(qtDes))
+           file1.write(qtDes + spaces + "Tk." + y[1:] + "\n")
+        file1.write("--------------------------------------------------\n")     
+        spaces = " " * 33
+        file1.write("Total: " + spaces + "Tk." + str(sum(price)) + "\n")
+        file1.write("--------------------------------------------------\n")
+        file1.write("Thank You For Shopping\n")
+        file1.close()
+        startfile(r"receipts\\" +receipt_no + ".txt",'open')
+ 
+
+        
+         
+           
+           
+        
+        
         
         
         
