@@ -6,8 +6,8 @@ Usage:
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QGraphicsColorizeEffect
-from PyQt5.QtGui import QPixmap, QColor, QPalette
+from PyQt5.QtWidgets import QGraphicsColorizeEffect, QDesktopWidget
+from PyQt5.QtGui import QPixmap, QColor, QPalette, QMovie
 
 
 
@@ -241,8 +241,9 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
 class helpPopup(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(658, 439)
+        Dialog.setGeometry((1920-658)//2, (1080-439)//2, 658, 439)
         Dialog.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
+        Dialog.setWindowIcon(QtGui.QIcon('ui_elements/appicon.svg'))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Dialog)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
@@ -287,8 +288,9 @@ class helpPopup(object):
 class receipt_prompt(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Prompt")
-        Dialog.resize(325, 138)
+        Dialog.setGeometry((1920-325)//2, (1080-138)//2, 325, 138)
         Dialog.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
+        Dialog.setWindowIcon(QtGui.QIcon('ui_elements/appicon.svg'))
         self.gridLayout = QtWidgets.QGridLayout(Dialog)
         self.gridLayout.setObjectName("gridLayout")
         self.label = QtWidgets.QLabel(Dialog)
@@ -330,14 +332,66 @@ class receipt_prompt(object):
         Dialog.close()
 
 
+
+class about_popup(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName("Dialog")
+        Dialog.setGeometry((1920-650)//2, (1080-450)//2, 650, 450)
+        Dialog.setStyleSheet("color: #ffffff; background-color: rgb(59, 62, 63);")
+        Dialog.setWindowIcon(QtGui.QIcon('ui_elements/appicon.svg'))
+        self.Title = QtWidgets.QLabel(Dialog)
+        self.Title.setGeometry(QtCore.QRect(0, 20, 631, 25))
+        self.Title.setAlignment(QtCore.Qt.AlignCenter)
+        self.Title.setObjectName("Title")
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(200, 80, 420, 500))
+        self.label.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.label.setWordWrap(True)
+        self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(Dialog)
+        self.label_2.setGeometry(QtCore.QRect(20, 135, 151, 181))
+        self.label_2.setText("")
+        self.label_2.setPixmap(QtGui.QPixmap("ui_elements/dulogo.png"))
+        self.label_2.setScaledContents(True)
+        self.label_2.setObjectName("label_2")
+        self.layoutWidget = QtWidgets.QWidget(Dialog)
+        self.layoutWidget.setGeometry(QtCore.QRect(0, 400, 631, 29))
+        self.layoutWidget.setObjectName("layoutWidget")
+        self.horizontalLayout = QtWidgets.QHBoxLayout(self.layoutWidget)
+        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
+        self.horizontalLayout.setContentsMargins(250, 0, 250, 0)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.OkButton_2 = QtWidgets.QPushButton(self.layoutWidget)
+        self.OkButton_2.setStyleSheet("color: rgb(0, 0, 0);\n"
+"background-color: rgb(90, 255, 109);\n"
+"font: 500 12pt \"Poppins\";")
+
+        self.OkButton_2.setObjectName("OkButton_2")
+        self.horizontalLayout.addWidget(self.OkButton_2)
+        self.horizontalLayout.setStretch(0, 1)
+        self.OkButton_2.clicked.connect(Dialog.close)
+        
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        _translate = QtCore.QCoreApplication.translate
+        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        self.Title.setText(_translate("Dialog", "<html><head/><body><p><span style=\" font-family:\'poppins\'; font-size:16pt; font-weight:600; color:#ffffff;\">About</span></p></body></html>"))
+        self.label.setText(_translate("Dialog", "<html><head/><body><p align=\"justify\"><span style=\" font-family:\'poppins\'; font-size:12pt;\">This is an Image recognition based billing system for supershops based on a state of the art object detection algorithm Yolov5. The application is made by -<br/><br/></span><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600; color:#5aff6d;\">Rusab Sarmun (SH-073-045)</span></p><p align=\"justify\"><span style=\" font-family:\'poppins\'; font-size:12pt; font-weight:600; color:#5aff6d;\">Fabiha Bushra (SK-073-070)</span><span style=\" font-family:\'poppins\'; font-size:12pt;\"><br/><br/>This project has been made as the final year project of BSc in DU EEE. </span></p></body></html>"))
+        self.OkButton_2.setText(_translate("Dialog", "OK"))
+        
+        
+        
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1144, 851)
+        MainWindow.setGeometry((1920-1144)//2, (1080-851)//2, 1144, 851)
+        MainWindow.setWindowIcon(QtGui.QIcon('ui_elements/appicon.svg'))
         
         palette = QPalette()
-        palette.setColor(QPalette.Text, QtCore.Qt.white)
-        
+        palette.setColor(QPalette.Text, QtCore.Qt.white)     
         
         myFont=QtGui.QFont('Poppins')
         myFont.setBold(True)
@@ -388,7 +442,7 @@ class Ui_MainWindow(object):
         self.camFeed = QtWidgets.QLabel(self.centralwidget)
         self.camFeed.setGeometry(QtCore.QRect(50, 170, 640, 480))
         self.camFeed.setText("")
-        self.camFeed.setPixmap(QtGui.QPixmap("ui_elements/connectingcam.jpg"))
+        self.camFeed.setPixmap(QtGui.QPixmap("ui_elements/connectingcam.jpg"))  
         self.camFeed.setObjectName("camFeed")
         
         self.labelCam = QtWidgets.QLabel(self.centralwidget)
@@ -553,11 +607,13 @@ class Ui_MainWindow(object):
         
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
+        self.actionAbout.triggered.connect(self.open_about)
         
         self.menuFIle.addAction(self.actionOpen_Price_File)
         self.menuFIle.addAction(self.actionExit)
         
         self.actionStart_Billing.triggered.connect(self.button_clicked)
+        self.actionStop_Billing.triggered.connect(self.button_clicked)
         self.actionLock_Items.triggered.connect(self.lock_clicked)
         self.actionClear_List.triggered.connect(self.reset_list)
         self.actionStop_Billing.setDisabled(True)
@@ -605,6 +661,7 @@ class Ui_MainWindow(object):
 
     def close_window(self):
         self.exit_app()
+    
         
     def update_image(self, cv_img):
         qtimg = self.convert_cv_qt(cv_img)
@@ -713,6 +770,12 @@ class Ui_MainWindow(object):
         helpui.setupUi(helpWindow)
         rw = helpWindow.exec()
         
+    def open_about(self):
+        aboutWindow = QtWidgets.QDialog()
+        helpui = about_popup()
+        helpui.setupUi(aboutWindow)
+        rw = aboutWindow.exec()
+        
     def open_receipt_prompt(self):
         promptWindow = QtWidgets.QDialog()
         helpui = receipt_prompt()
@@ -755,35 +818,18 @@ class Ui_MainWindow(object):
 
         
          
-           
-           
-        
-        
-        
-        
-        
-            
-        
-            
-
+          
 
 if __name__ == "__main__":
     
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    
-   
+    ui.setupUi(MainWindow)    
     
     MainWindow.show()
-    
-    
-    
+         
     run()
-    
-
-    
 
     sys.exit(app.exec_())
 
