@@ -91,6 +91,9 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
     names = model.module.names if hasattr(model, 'module') else model.names  # get class names
     
     net_det_count = [0]*len(names)
+    conf_grid = [[0 for col in range(2)] for row in range(len(names))]
+    conf_counter = [[0 for col in range(2)] for row in range(len(names))]
+    avg_conf = [[0 for col in range(2)] for row in range(len(names))]
     
     if half:
         model.half()  # to FP16
@@ -143,6 +146,7 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             p = Path(p)  # to Path
                         
             curr_det_count = [0]*len(names)
+            grid_iter = [0]*len(names)
             
             #reset net det counter
             if ui.reset_flag > 0:
@@ -155,6 +159,13 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             imc = im0.copy() if save_crop else im0  # for save_crop
             listed = ""
             price_listed = []
+            
+            #conf_counter iteration
+            for i in range(len(conf_counter)):
+                for j in range(len(conf_counter[i])):
+                    conf_counter[i][j] += 1
+                    
+          
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
@@ -188,10 +199,54 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
+                        if grid_iter[c] > len(conf_grid[c]):
+                            conf_grid[c].append(0)
+                            conf_counter[c].append(1)
+                            avg_conf[c].append(0)
+                            
+                        num_i = grid_iter[c]
+                        
+                      
+                        conf_grid[c][num_i] += float(conf)
+                        
+                        grid_iter[c] += 1
+                        print(f"c: {c}")
+                        
                         
                             
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
+            
+            
+
+            
+            
+            for i in range(len(conf_counter)):
+                for j in range(len(conf_counter[i])):
+                    avg_conf[i][j] = conf_grid[i][j] / conf_counter[i][j]
+                    if avg_conf[i][j] < 0.05:
+                            conf_grid[i][j]  = 0
+                            conf_counter[i][j] = 0
+                            
+            print(f"conf_grid: {conf_grid}")
+            print(f"avg_conf: {avg_conf}")
+            print(f"conf_counter: {conf_counter}")            
+            
+                        
+            listed = ""
+            
+            filtered_count = [0]*len(names)
+            
+            
+            
+            for class_conf, i in zip(avg_conf, range(len(names))):
+                for item_conf in class_conf:
+                    if item_conf > 70:
+                        filtered_count[i] += 1
+                        
+           
+            
+            
             
             if ui.button_flag: 
                 if ui.lock_flag > 0:
@@ -201,10 +256,10 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                     ui.listWidget.clear()
                     
                     for i in range(len(names)):
-                        net_det_count[i] += curr_det_count[i]
+                        net_det_count[i] += filtered_count[i]
                         if net_det_count[i] > 0:
                             ui.update_item(f"{net_det_count[i]} x {names[i]}")   
-                            ui.update_price("\u09F3" + str(net_det_count[i]*item_price))
+                            ui.update_price("\u09F3" + str(filtered_count[i]*item_price))
                     print(f"net_count = {net_det_count}")
                     ui.color_locked()             
                 ui.clear_list()
@@ -212,14 +267,19 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             else:
                 ui.lock_flag = 0 #reset lock flag if not billing
             
+            
+            print(f"filtered_count = {filtered_count}")
             if len(listed):
                
                 listed = listed.split("\n")
                 if ui.button_flag:
                     ui.clear_list()
-                    for item, item_price in zip(listed, price_listed):
-                        ui.update_item(item)   
-                        ui.update_price("\u09F3" + str(item_price))
+                    for i in range(len(names)):
+                       
+                        if filtered_count[i] > 0:
+                            ui.update_item(f"{filtered_count[i]} x {names[i]}")   
+                            ui.update_price("\u09F3" + str(filtered_count[i]*item_price))
+                    print(f"filtered_count = {filtered_count}")
                     ui.update_total()
 
             # Stream results

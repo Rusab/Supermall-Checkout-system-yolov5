@@ -1,0 +1,14 @@
+Order
+Receipt #592497
+
+Shop Name: Sigma Supershop
+Date Time: 2021-06-30 21:54:17
+--------------------------------------------------
+QTY   Description                       Price
+--------------------------------------------------
+3     Sepnil HandSanitizer 40ml         Tk.240
+3     Vasline Original                  Tk.240
+--------------------------------------------------
+Total:                                  Tk.480
+--------------------------------------------------
+Thank You For Shopping
