@@ -11,7 +11,7 @@ from PyQt5.QtGui import QPixmap, QColor, QPalette, QMovie
 
 
 
-from os import startfile
+#from os import startfile
 from random import randint
 
 
@@ -94,6 +94,8 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
     conf_grid = [[0 for col in range(2)] for row in range(len(names))]
     conf_counter = [[0 for col in range(2)] for row in range(len(names))]
     avg_conf = [[0 for col in range(2)] for row in range(len(names))]
+    zero_counter = [[0 for col in range(2)] for row in range(len(names))]
+    
     
     if half:
         model.half()  # to FP16
@@ -147,6 +149,9 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                         
             curr_det_count = [0]*len(names)
             grid_iter = [0]*len(names)
+            prev_counter = []
+            for row in conf_grid:
+                prev_counter.append([0]*len(row))
             
             #reset net det counter
             if ui.reset_flag > 0:
@@ -199,14 +204,18 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
-                        if grid_iter[c] > len(conf_grid[c]):
+                        if grid_iter[c] > (len(conf_grid[c])-1):
                             conf_grid[c].append(0)
                             conf_counter[c].append(1)
                             avg_conf[c].append(0)
+                            zero_counter[c].append(0)
+                            prev_counter[c].append(0)
                             
                         num_i = grid_iter[c]
+                        prev_counter[c][num_i] = 1
                         
-                      
+                        
+                            
                         conf_grid[c][num_i] += float(conf)
                         
                         grid_iter[c] += 1
@@ -217,32 +226,47 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
             
-            
+            for i in range(len(conf_counter)):
+                for j in range(len(conf_counter[i])):
+                    if prev_counter[i][j] == 0:
+                        zero_counter[i][j] += 1
+                    else:
+                        zero_counter[i][j] = 0
+                        
 
             
             
             for i in range(len(conf_counter)):
                 for j in range(len(conf_counter[i])):
                     avg_conf[i][j] = conf_grid[i][j] / conf_counter[i][j]
-                    if avg_conf[i][j] < 0.05:
+                    if avg_conf[i][j] < 0.05 or zero_counter[i][j] > 4:
                             conf_grid[i][j]  = 0
                             conf_counter[i][j] = 0
+                            zero_counter[i][j] = 0
                             
             print(f"conf_grid: {conf_grid}")
             print(f"avg_conf: {avg_conf}")
-            print(f"conf_counter: {conf_counter}")            
+            print(f"conf_counter: {conf_counter}")         
+            print(f"zero_counter: {zero_counter}")
             
                         
             listed = ""
             
             filtered_count = [0]*len(names)
             
-            
+            thres = 0.65
+            green_flag = True
             
             for class_conf, i in zip(avg_conf, range(len(names))):
                 for item_conf in class_conf:
-                    if item_conf > 70:
+                    if item_conf > thres:
                         filtered_count[i] += 1
+                    if item_conf < thres and item_conf > 0:
+                        ui.red_signal()
+                        green_flag  = False
+            
+            if green_flag:
+                ui.green_signal()
                         
            
             
@@ -269,18 +293,16 @@ def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt p
             
             
             print(f"filtered_count = {filtered_count}")
-            if len(listed):
-               
-                listed = listed.split("\n")
-                if ui.button_flag:
-                    ui.clear_list()
-                    for i in range(len(names)):
-                       
-                        if filtered_count[i] > 0:
-                            ui.update_item(f"{filtered_count[i]} x {names[i]}")   
-                            ui.update_price("\u09F3" + str(filtered_count[i]*item_price))
-                    print(f"filtered_count = {filtered_count}")
-                    ui.update_total()
+            
+            if ui.button_flag:
+                ui.clear_list()
+                for i in range(len(names)):
+                   
+                    if filtered_count[i] > 0:
+                        ui.update_item(f"{filtered_count[i]} x {names[i]}")   
+                        ui.update_price("\u09F3" + str(filtered_count[i]*item_price))
+                print(f"filtered_count = {filtered_count}")
+                ui.update_total()
 
             # Stream results
             if view_img:
@@ -513,7 +535,11 @@ class Ui_MainWindow(object):
         self.labelCam.setText("Camera Feed")
         self.labelCam.setStyleSheet("color:#ffffff")
         
-        
+        self.labelSignal = QtWidgets.QLabel(self.centralwidget)
+        self.labelSignal.setGeometry(0, 0, 400, 400)
+        self.labelSignal.move(855, 140)
+        self.labelSignal.resize(14, 14)
+        self.labelSignal.setStyleSheet("border: 3px solid #ffffff; border-radius: 7px;")
         
         self.listWidget = QtWidgets.QListWidget(self.centralwidget)
         self.listWidget.setGeometry(QtCore.QRect(720, 170, 241, 481))
@@ -722,6 +748,12 @@ class Ui_MainWindow(object):
     def close_window(self):
         self.exit_app()
     
+    def green_signal(self):
+        self.labelSignal.setStyleSheet("border: 3px solid rgb(90, 255, 109); border-radius: 5px;")
+        
+    def red_signal(self):
+        self.labelSignal.setStyleSheet("border: 3px solid rgb(255, 92, 92); border-radius: 5px;")
+        
         
     def update_image(self, cv_img):
         qtimg = self.convert_cv_qt(cv_img)
@@ -873,7 +905,7 @@ class Ui_MainWindow(object):
         file1.write("--------------------------------------------------\n")
         file1.write("Thank You For Shopping\n")
         file1.close()
-        startfile(r"receipts\\" +receipt_no + ".txt",'open')
+        #startfile(r"receipts\\" +receipt_no + ".txt",'open')
  
 
         
