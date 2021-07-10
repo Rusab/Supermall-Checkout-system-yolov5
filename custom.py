@@ -47,7 +47,7 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 @torch.no_grad()
-def run(weights='runs/train/exp11cat16_augmented/weights/best.pt',  # model.pt path(s)
+def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.pt path(s)
         source='0',  # file/dir/URL/glob, 0 for webcam
         imgsz=416,  # inference size (pixels)
         conf_thres=0.25,  # confidence threshold
@@ -832,6 +832,3 @@ if __name__ == "__main__":
     run()
 
     sys.exit(app.exec_())
-
-
-
