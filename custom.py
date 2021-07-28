@@ -204,7 +204,7 @@ def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.
                         net_det_count[i] += curr_det_count[i]
                         if net_det_count[i] > 0:
                             ui.update_item(f"{net_det_count[i]} x {names[i]}")   
-                            ui.update_price("\u09F3" + str(net_det_count[i]*item_price))
+                            ui.update_price("\u09F3" + str(net_det_count[i]*int(price_list[i])))
                     print(f"net_count = {net_det_count}")
                     ui.color_locked()             
                 ui.clear_list()
@@ -213,14 +213,18 @@ def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.
                 ui.lock_flag = 0 #reset lock flag if not billing
             
             if len(listed):
-               
-                listed = listed.split("\n")
                 if ui.button_flag:
+                    test_list = []
                     ui.clear_list()
-                    for item, item_price in zip(listed, price_listed):
-                        ui.update_item(item)   
-                        ui.update_price("\u09F3" + str(item_price))
+                    for i in range(len(names)):
+                        if curr_det_count[i] > 0:
+                            ui.update_item(f"{curr_det_count[i]} x {names[i]}")  
+                            test_list.append(names[i])
+                            ui.update_price("\u09F3" + str(curr_det_count[i]*int(price_list[i])))
+
                     ui.update_total()
+                    print(test_list)
+
 
             # Stream results
             if view_img:
@@ -475,7 +479,7 @@ class Ui_MainWindow(object):
         self.listLabel.setStyleSheet("color:#ffffff")
         
         self.horizontalLayoutWidget_2 = QtWidgets.QWidget(self.centralwidget)
-        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(220, 40, 651, 71))
+        self.horizontalLayoutWidget_2.setGeometry(QtCore.QRect(275, 40, 651, 71))
         self.horizontalLayoutWidget_2.setObjectName("horizontalLayoutWidget_2")
         self.Titlelayout = QtWidgets.QHBoxLayout(self.horizontalLayoutWidget_2)
         self.Titlelayout.setContentsMargins(0, 0, 0, 0)
@@ -483,7 +487,7 @@ class Ui_MainWindow(object):
         
         self.label_4 = QtWidgets.QLabel(self.centralwidget)
         self.label_4.setGeometry(QtCore.QRect(220, 20, 631, 111))
-        self.label_4.setText("Automated Billing System")
+        self.label_4.setText("CV Based Billing System")
         self.label_4.setObjectName("label_4")
         self.label_4.setFont(titleFont)
         self.label_4.setStyleSheet("color:#5aff6d")
@@ -492,7 +496,7 @@ class Ui_MainWindow(object):
         self.versionLabel = QtWidgets.QLabel(self.centralwidget)
         self.versionLabel.setGeometry(QtCore.QRect(760, 60, 151, 41))
         self.versionLabel.setObjectName("versionLabel")
-        self.versionLabel.setText("v.1.0")
+        self.versionLabel.setText("v.1.1")
         self.versionLabel.setFont(myFont)
         self.versionLabel.setStyleSheet("color:#ffffff")
         self.Titlelayout.addWidget(self.versionLabel)
@@ -638,7 +642,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Automated Billing System v.1.0"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CV Based Billing System v.1.1"))
         self.billingButton.setText(_translate("MainWindow", " START BILLING"))
         self.lockButton.setText(_translate("MainWindow", "  LOCK ITEMS"))
         self.resetButton.setText(_translate("MainWindow", "  CLEAR LIST"))
@@ -688,9 +692,14 @@ class Ui_MainWindow(object):
         current = self.listWidget.count()
         print(f"current:{current}")
         print(f"pointer:{self.lock_pointer}")
-        for row in range(self.lock_pointer-1, current):    
-            self.listWidget.takeItem(row)
-            self.listPrice.takeItem(row)
+
+        start_row = int(self.lock_pointer) - 1
+        for row in range(start_row, current):    
+            self.listWidget.takeItem(start_row)
+            self.listPrice.takeItem(start_row)
+            print(row)
+
+        print(f"new current:{self.listWidget.count()}")
         
     #clear list button actually resets list       
     def reset_list(self):
