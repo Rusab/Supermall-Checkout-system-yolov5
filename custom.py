@@ -51,7 +51,7 @@ def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.
         source='0',  # file/dir/URL/glob, 0 for webcam
         imgsz=416,  # inference size (pixels)
         conf_thres=0.25,  # confidence threshold
-        iou_thres=0.45,  # NMS IOU threshold
+        iou_thres=0.5,  # NMS IOU threshold
         max_det=1000,  # maximum detections per image
         device='',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
         view_img=False,  # show results
@@ -206,9 +206,10 @@ def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.
                             ui.update_item(f"{net_det_count[i]} x {names[i]}")   
                             ui.update_price("\u09F3" + str(net_det_count[i]*int(price_list[i])))
                     print(f"net_count = {net_det_count}")
-                    ui.color_locked()             
+                    ui.color_locked()
+                    ui.update_total()             
                 ui.clear_list()
-                ui.update_total()
+                
             else:
                 ui.lock_flag = 0 #reset lock flag if not billing
             
@@ -222,7 +223,7 @@ def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.
                             test_list.append(names[i])
                             ui.update_price("\u09F3" + str(curr_det_count[i]*int(price_list[i])))
 
-                    ui.update_total()
+                    #ui.update_total()
                     print(test_list)
 
 
@@ -749,6 +750,7 @@ class Ui_MainWindow(object):
             self.actionStop_Billing.setDisabled(True)
             self.actionStart_Billing.setDisabled(False)
             self.open_receipt_prompt()
+            self.reset_list()
            
        
             
