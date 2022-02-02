@@ -47,8 +47,8 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 @torch.no_grad()
-def run(weights='runs/train/exp13stackedNoaug_Medium/weights/best.pt',  # model.pt path(s)
-        source='0',  # file/dir/URL/glob, 0 for webcam
+def run(weights='runs/weights/best.pt',  # model.pt path(s)
+        source='1',  # file/dir/URL/glob, 0 for webcam
         imgsz=416,  # inference size (pixels)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.5,  # NMS IOU threshold
