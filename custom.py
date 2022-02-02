@@ -25,6 +25,7 @@ import datetime
 from pathlib import Path
 
 import pandas as pd
+import arucodetector
 
 import cv2
 import torch
@@ -42,13 +43,9 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 
 
-
-
-
-
 @torch.no_grad()
 def run(weights='runs/weights/best.pt',  # model.pt path(s)
-        source='1',  # file/dir/URL/glob, 0 for webcam
+        source='0',  # file/dir/URL/glob, 0 for webcam
         imgsz=416,  # inference size (pixels)
         conf_thres=0.25,  # confidence threshold
         iou_thres=0.5,  # NMS IOU threshold
@@ -57,7 +54,7 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
         view_img=False,  # show results
         save_txt=False,  # save results to *.txt
         save_conf=False,  # save confidences in --save-txt labels
-        save_crop=False,  # save cropped prediction boxes
+        save_crop=True,  # save cropped prediction boxes
         nosave=False,  # do not save images/videos
         classes=None,  # filter by class: --class 0, or --class 0 2 3
         agnostic_nms=False,  # class-agnostic NMS
@@ -78,6 +75,9 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
     # Load Prices
     prices = pd.read_csv("Invetory_pricing.csv")
     price_list = pd.Series.tolist(prices["Price"])
+    w_products = pd.read_csv("Weight_dependent_pricing.csv")
+    w_product_name = pd.Series.tolist(w_products["Product_name"])
+    w_product_price = pd.Series.tolist(w_products["Price"])
     
     # Initialize
     set_logging()
@@ -90,7 +90,7 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
     imgsz = check_img_size(imgsz, s=stride)  # check image size
     names = model.module.names if hasattr(model, 'module') else model.names  # get class names
     
-    net_det_count = [0]*len(names)
+    net_det_count = [0]*(len(names)+4)
     
     if half:
         model.half()  # to FP16
@@ -142,12 +142,12 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
 
             p = Path(p)  # to Path
                         
-            curr_det_count = [0]*len(names)
+            curr_det_count = [0]*(len(names)+4)
             
             #reset net det counter
             if ui.reset_flag > 0:
                 ui.reset_flag = 0
-                net_det_count = [0]*len(names)
+                net_det_count = [0]*(len(names)+4)
                 
             
             s += '%gx%g ' % img.shape[2:]  # print string
@@ -170,6 +170,23 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                     tot_len = len(ls_item) + len(ls_price)
                     
                     listed += ls_item + "\n"
+
+                    if int(c) == 25:
+                        print("*******Weighted***********")
+                        # x1 = int(xyxy[0].item())
+                        # y1 = int(xyxy[1].item())
+                        # x2 = int(xyxy[2].item())
+                        # y2 = int(xyxy[3].item())
+
+                        # confidence_score = conf
+                        # class_index = cls
+                        # object_name = names[int(cls)]
+
+                        # print('bounding box is ', x1, y1, x2, y2)
+                        # print('class index is ', class_index)
+                        # print('detected object name is ', object_name)
+                        # cropped_img = im0[y1:y2, x1:x2]
+                        # cv2.imwrite('test.png',cropped_img)
                     
                     curr_det_count[int(c)] += int(n)
                     item_price = int(n) * int(price_list[int(c)])
@@ -187,8 +204,32 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
+                        if c != 25:
+                            plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
                         
+                        else:
+                            
+                            x1 = int(xyxy[0].item())
+                            y1 = int(xyxy[1].item())
+                            x2 = int(xyxy[2].item())
+                            y2 = int(xyxy[3].item())
+
+                            confidence_score = conf
+                            class_index = cls
+                            object_name = names[int(cls)]
+
+                            print('bounding box is ', x1, y1, x2, y2)
+                            print('class index is ', class_index)
+                            print('detected object name is ', object_name)
+                            original_img = im0
+                            cropped_img = im0[y1:y2, x1:x2]
+                            w_prod, cropped_img = arucodetector.detect_aruco(cropped_img)
+                            print(w_prod)
+                            #im0[y1:y2, x1:x2] = cropped_img
+                            #plot_one_box(xyxy, im0, label="Minicat Rice " + str(w_prod[1]/100) + "KG", color=colors(c, True), line_thickness=line_thickness)
+                            if len(w_prod) == 2:
+                                plot_one_box(xyxy, im0, label=w_product_name[(w_prod[0]-26)] + str(float(w_prod[1]/100)) + "KG", color=colors(c, True), line_thickness=line_thickness)
+
                             
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
