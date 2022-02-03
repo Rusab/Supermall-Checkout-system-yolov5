@@ -171,28 +171,12 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                     
                     listed += ls_item + "\n"
 
-                    if int(c) == 25:
-                        print("*******Weighted***********")
-                        # x1 = int(xyxy[0].item())
-                        # y1 = int(xyxy[1].item())
-                        # x2 = int(xyxy[2].item())
-                        # y2 = int(xyxy[3].item())
-
-                        # confidence_score = conf
-                        # class_index = cls
-                        # object_name = names[int(cls)]
-
-                        # print('bounding box is ', x1, y1, x2, y2)
-                        # print('class index is ', class_index)
-                        # print('detected object name is ', object_name)
-                        # cropped_img = im0[y1:y2, x1:x2]
-                        # cv2.imwrite('test.png',cropped_img)
+                    if int(c) != 25:
+                        curr_det_count[int(c)] += int(n)
+                        item_price = int(n) * int(price_list[int(c)])
+                        price_listed.append(item_price)
                     
-                    curr_det_count[int(c)] += int(n)
-                    item_price = int(n) * int(price_list[int(c)])
-                    price_listed.append(item_price)
-                    
-                
+                w_prices = [0] * len(w_product_name)
 
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
@@ -236,8 +220,14 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                             #plot_one_box(xyxy, im0, label="Minicat Rice " + str(w_prod[1]/100) + "KG", color=colors(c, True), line_thickness=line_thickness)
                             if len(w_prod) == 2 and w_prod[0] >= 26 and w_prod[0] <= 30:
                                 plot_one_box(xyxy, im0, label=w_product_name[(w_prod[0]-26)] + ' ' + str(float(w_prod[1]/100)) + "KG", color= b_color, line_thickness=line_thickness)
+                                curr_det_count[w_prod[0]-1] += float(w_prod[1]/100)
+                                w_prices[w_prod[0]-26] += float(w_prod[1]/100)*float(w_product_price[w_prod[0]-26])
+                                
                             else:
                                 plot_one_box(xyxy, im0, label=label, color=(0, 0, 255), line_thickness=line_thickness)
+                for prices in w_prices:
+                    price_listed.append(prices)
+                            
 
 
                             
@@ -251,11 +241,16 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                     ui.listPrice.clear()
                     ui.listWidget.clear()
                     
-                    for i in range(len(names)):
+                    for i in range(len(names)+4):
                         net_det_count[i] += curr_det_count[i]
                         if net_det_count[i] > 0:
-                            ui.update_item(f"{net_det_count[i]} x {names[i]}")   
-                            ui.update_price("\u09F3" + str(net_det_count[i]*int(price_list[i])))
+                            if i < 25:
+                                ui.update_item(f"{net_det_count[i]}   x {names[i]}")   
+                                ui.update_price("\u09F3" + str(net_det_count[i]*int(price_list[i])))
+                            else:
+                                ui.update_item(f"{net_det_count[i]}KG x {w_product_name[i-25]}")   
+                                ui.update_price("\u09F3" + str(round(net_det_count[i]*int(w_product_price[i-25]))))
+
                     print(f"net_count = {net_det_count}")
                     ui.color_locked()
                     ui.update_total()             
@@ -268,11 +263,16 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                 if ui.button_flag:
                     test_list = []
                     ui.clear_list()
-                    for i in range(len(names)):
+                    for i in range(len(names)+4):
                         if curr_det_count[i] > 0:
-                            ui.update_item(f"{curr_det_count[i]} x {names[i]}")  
-                            test_list.append(names[i])
-                            ui.update_price("\u09F3" + str(curr_det_count[i]*int(price_list[i])))
+                            if i < 25:
+                                ui.update_item(f"{curr_det_count[i]}   x {names[i]}")  
+                                test_list.append(names[i])
+                                ui.update_price("\u09F3" + str(curr_det_count[i]*int(price_list[i])))
+                            else:
+                                ui.update_item(f"{curr_det_count[i]}KG x {w_product_name[i-25]}")  
+                                test_list.append(w_product_name[i-25])
+                                ui.update_price("\u09F3" + str(round(curr_det_count[i]*int(w_product_price[i-25]))))
 
                     #ui.update_total()
                     print(test_list)
