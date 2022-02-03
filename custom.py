@@ -863,10 +863,12 @@ class Ui_MainWindow(object):
         for i in range(self.lock_pointer - 1):
            x = self.listWidget.item(i).text()
            y = self.listPrice.item(i).text()
-           qty = x[0]
-           desc = x[4:]
+           r = x.split('x')
+           qty = r[0]
+           desc = r[1][0:]
            price.append(int(y[1:]))
-           qtDes = qty + "     " + desc
+           spaces = " " * (7-len(qty))
+           qtDes = qty + spaces + desc
            spaces = " " * (40-len(qtDes))
            file1.write(qtDes + spaces + "Tk." + y[1:] + "\n")
         file1.write("--------------------------------------------------\n")     
