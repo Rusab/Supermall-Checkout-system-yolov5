@@ -208,7 +208,6 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                             plot_one_box(xyxy, im0, label=label, color=colors(c, True), line_thickness=line_thickness)
                         
                         else:
-                            
                             x1 = int(xyxy[0].item())
                             y1 = int(xyxy[1].item())
                             x2 = int(xyxy[2].item())
@@ -224,11 +223,22 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                             original_img = im0
                             cropped_img = im0[y1:y2, x1:x2]
                             w_prod, cropped_img = arucodetector.detect_aruco(cropped_img)
-                            print(w_prod)
+                            b_color = (0, 255, 0)
+                            temp_w_prod = w_prod
+                            try:
+                                w_prod, cropped_img = arucodetector.detect_qr(cropped_img)
+                                b_color = (255, 0, 0)
+                            except:
+                                w_prod = temp_w_prod
+                                print("qr not detected")
+                            # print(w_prod)
                             #im0[y1:y2, x1:x2] = cropped_img
                             #plot_one_box(xyxy, im0, label="Minicat Rice " + str(w_prod[1]/100) + "KG", color=colors(c, True), line_thickness=line_thickness)
-                            if len(w_prod) == 2:
-                                plot_one_box(xyxy, im0, label=w_product_name[(w_prod[0]-26)] + str(float(w_prod[1]/100)) + "KG", color=colors(c, True), line_thickness=line_thickness)
+                            if len(w_prod) == 2 and w_prod[0] >= 26 and w_prod[0] <= 30:
+                                plot_one_box(xyxy, im0, label=w_product_name[(w_prod[0]-26)] + ' ' + str(float(w_prod[1]/100)) + "KG", color= b_color, line_thickness=line_thickness)
+                            else:
+                                plot_one_box(xyxy, im0, label=label, color=(0, 0, 255), line_thickness=line_thickness)
+
 
                             
             # Print time (inference + NMS)

@@ -6,6 +6,7 @@ from math import prod
 import imutils
 import cv2
 import sys
+from pyzbar.pyzbar import decode
 
 # define names of each possible ArUco tag OpenCV supports
 ARUCO_DICT = {
@@ -136,3 +137,10 @@ def detect_aruco(image):
 			# cv2.waitKey(0)
 			
 	return product, image
+
+def detect_qr(image):
+	for qr in decode(image):
+		data = qr.data.decode('utf-8')
+		product = data.split(',')
+		product = [int(p) for p in product]
+		return product, image
