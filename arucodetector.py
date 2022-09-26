@@ -37,6 +37,7 @@ ARUCO_DICT = {
 def detect_aruco(image):
 # load the input image from disk and resize it
 	print("[INFO] loading image...")
+	im_shape = image.shape
 	image = imutils.resize(image, width=600)
 
 	# verify that the supplied ArUCo tag exists and is supported by
@@ -135,7 +136,11 @@ def detect_aruco(image):
 			# show the output image
 			# cv2.imshow("Image", image)
 			# cv2.waitKey(0)
-			
+	print("Before", image.shape)
+	image = cv2.resize(image, (im_shape[1],im_shape[0]))
+	
+	print("After", image.shape)
+	print("Exopectation", im_shape)
 	return product, image
 
 def detect_qr(image):

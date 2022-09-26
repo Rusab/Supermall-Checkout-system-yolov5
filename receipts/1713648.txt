@@ -1,0 +1,20 @@
+Order
+Receipt #1713648
+
+Shop Name: Sigma Supershop
+Date Time: 2022-02-09 01:58:36
+--------------------------------------------------
+QTY   Description                       Price
+--------------------------------------------------
+1       ACI Pure Salt 1kg               Tk.32
+1       Sepnil HandSanitizer 40ml       Tk.80
+1       Vasline Original                Tk.250
+1       Coca-cola 250ml bottle          Tk.15
+1       Maggi Soup Chicken              Tk.40
+1       Maggi Soup Vegetable            Tk.40
+1.5KG   Local Potato                    Tk.45
+0.25KG  Local Garlic                    Tk.10
+--------------------------------------------------
+Total:                                  Tk.512
+--------------------------------------------------
+Thank You For Shopping

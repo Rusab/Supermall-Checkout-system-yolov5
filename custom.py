@@ -5,6 +5,7 @@ Usage:
 """
 
 
+from logging import exception
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QGraphicsColorizeEffect, QDesktopWidget
 from PyQt5.QtGui import QPixmap, QColor, QPalette, QMovie
@@ -79,6 +80,9 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
     w_product_name = pd.Series.tolist(w_products["Product_name"])
     w_product_price = pd.Series.tolist(w_products["Price"])
     
+    conf_logger = 0
+    frame_logger = 0
+
     # Initialize
     set_logging()
     device = select_device(device)
@@ -206,28 +210,37 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                             print('detected object name is ', object_name)
                             original_img = im0
                             cropped_img = im0[y1:y2, x1:x2]
-                            w_prod, cropped_img = arucodetector.detect_aruco(cropped_img)
+                            w_prod, cropped_imgb = arucodetector.detect_aruco(cropped_img)
                             b_color = (0, 255, 0)
+                            im0[y1:y2, x1:x2] = cropped_imgb
                             temp_w_prod = w_prod
                             try:
                                 w_prod, cropped_img = arucodetector.detect_qr(cropped_img)
+                                
                                 b_color = (255, 0, 0)
                             except:
                                 w_prod = temp_w_prod
+                                
                                 print("qr not detected")
+                                
                             # print(w_prod)
                             #im0[y1:y2, x1:x2] = cropped_img
                             #plot_one_box(xyxy, im0, label="Minicat Rice " + str(w_prod[1]/100) + "KG", color=colors(c, True), line_thickness=line_thickness)
+                            frame_logger +=1
                             if len(w_prod) == 2 and w_prod[0] >= 26 and w_prod[0] <= 30:
                                 plot_one_box(xyxy, im0, label=w_product_name[(w_prod[0]-26)] + ' ' + str(float(w_prod[1]/100)) + "KG", color= b_color, line_thickness=line_thickness)
                                 curr_det_count[w_prod[0]-1] += float(w_prod[1]/100)
                                 w_prices[w_prod[0]-26] += float(w_prod[1]/100)*float(w_product_price[w_prod[0]-26])
+                                print(w_product_name[(w_prod[0]-26)] + ' ' + str(float(w_prod[1]/100)) + "KG")
+                                
+                                if(w_prod[0] == 30):
+                                    conf_logger += 1
                                 
                             else:
                                 plot_one_box(xyxy, im0, label=label, color=(0, 0, 255), line_thickness=line_thickness)
                 for prices in w_prices:
                     price_listed.append(prices)
-                            
+               # print("||||||||||||||", conf_logger / frame_logger, "||||||||||||||")
 
 
                             
@@ -273,6 +286,7 @@ def run(weights='runs/weights/best.pt',  # model.pt path(s)
                                 ui.update_item(f"{curr_det_count[i]}KG x {w_product_name[i-25]}")  
                                 test_list.append(w_product_name[i-25])
                                 ui.update_price("\u09F3" + str(round(curr_det_count[i]*int(w_product_price[i-25]))))
+                                
 
                     #ui.update_total()
                     print(test_list)

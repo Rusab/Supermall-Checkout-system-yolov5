@@ -1,0 +1,20 @@
+Order
+Receipt #4808187
+
+Shop Name: Sigma Supershop
+Date Time: 2022-02-09 01:53:21
+--------------------------------------------------
+QTY   Description                       Price
+--------------------------------------------------
+1       ACI Pure Salt 1kg               Tk.32
+1       Dettol Original Soap            Tk.42
+1       Sepnil HandSanitizer 40ml       Tk.80
+1       Vasline Original                Tk.250
+1       Coca-cola 250ml bottle          Tk.15
+1       Dettol Soap Aloe Vera           Tk.44
+1.5KG   Local Potato                    Tk.45
+0.25KG  Local Garlic                    Tk.10
+--------------------------------------------------
+Total:                                  Tk.518
+--------------------------------------------------
+Thank You For Shopping

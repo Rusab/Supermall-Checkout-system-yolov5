@@ -1,0 +1,14 @@
+Order
+Receipt #50294
+
+Shop Name: Sigma Supershop
+Date Time: 2022-02-09 01:46:58
+--------------------------------------------------
+QTY   Description                       Price
+--------------------------------------------------
+1       Dettol Original Soap            Tk.42
+1       Dettol Soap Aloe Vera           Tk.44
+--------------------------------------------------
+Total:                                  Tk.86
+--------------------------------------------------
+Thank You For Shopping
