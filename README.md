@@ -17,7 +17,12 @@ this problem by integrating Hybrid ArUco Markers in their packaging instead of
 QR codes. Overall, our system has achieved a reasonable real-time retail product
 detection accuracy to be implemented on the billing system paving the way for a
 fully automated supermarket experience inside the grocery stores.
+#### Working Demo of Billing
+<img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/static.gif?raw=true">
 
+#### Detection on a Conveyor Belt
+
+<img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/dynamic.gif?raw=true">
 
 # Dataset:
 We created a dataset with 26 detectable locally available products (excluding different categories for weight dependent products) in Bangladesh. The dataset was build by taking photos of the products and web scrapping review images from Daraz.  Our dataset consists of 3056 real images and a total of 5734 images including synthetic generations. They contain 13383 object instances.
@@ -59,10 +64,11 @@ Products:
 29. Local Potato (Weight Dependent) 
 30. Local Garlic (Weight Dependent)
 ```
-### Example of Synthetic images used for augmentation
+#### Example of Synthetic images used for augmentation
 <img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/Synthetic image.png?raw=true">
 
 # System Description
+#### A Flowchart of the billing system
 <img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/flowchart.png?raw=true">
 
 ## Model Training
@@ -87,11 +93,11 @@ A table mounted webcam is used to detect the products on the checkout corner.
 ## Weight Dependent Product Detection
 We used a hybrid of 2 classes of ArUco markers to detect the id and weight of products. These labels are presumed to be these labels are assumed to applied on the product by sales assitants before billing.
 
-### Hybrid ArUco Marker
+#### Hybrid ArUco Marker
 
 <img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/arucoh.png?raw=true" width="300">
 
-### Detection
+#### Detection
 ![alt text](https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/arucodet.png?raw=true)
 
 
@@ -109,7 +115,7 @@ The green area represents products that have already been billed, the non-green 
 
 
 # Result And Analysis
-Confusion Matrix for the final ensemble model
+#### Confusion Matrix for the Final Ensemble model
 <img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/ensemble_test3.png?raw=true">
 
 We have used mAP scores for as the evaluation metric in all of our results.
@@ -121,5 +127,6 @@ We have used mAP scores for as the evaluation metric in all of our results.
 
 #### Comparison between weight-dependent product detection using QR code and ArUco marker
 <img src="https://github.com/Rusab/Supermall-Checkout-system-yolov5/blob/qr-implementation/images/qraruco.png?raw=true">
+
 *Stability = Correct Detections / Number of Frames Scanned**
 
